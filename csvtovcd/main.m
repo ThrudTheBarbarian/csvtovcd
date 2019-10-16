@@ -31,6 +31,14 @@ int main(int argc, const char * argv[])
 		NSString *file1		= [ArgParser stringFor:"-i"
 												or:"--input-file"
 									   withDefault:""];
+		NSString *ofile		= @"output.vcd";
+		if ([file1 length] > 0)
+			{
+			ofile = [NSString stringWithFormat:@"%@.vcd",
+							[file1 stringByDeletingPathExtension]];
+			}
+		char * oname = (char *)[ofile UTF8String];
+		
 		NSString *syncCol	= [ArgParser stringFor:"-s"
 												or:"--sample-column"
 									   withDefault:"Sample Number"];
@@ -39,14 +47,17 @@ int main(int argc, const char * argv[])
 									   withDefault:"Time"];
 		NSString *output  	= [ArgParser stringFor:"-o"
 												or:"--output-file"
-									   withDefault:"output.vcd"];
-		NSString *vecs  	= [ArgParser stringFor:"-v"
+									   withDefault:oname];
+		NSString *vUser  	= [ArgParser stringFor:"-v"
 												or:"--vectors"
 									   withDefault:""];
+		BOOL hideProgress	= [ArgParser  flagFor:"-p"
+											   or:"--hide-progress"
+									  withDefault:NO];
 		BOOL needHelp		= [ArgParser  flagFor:"-h"
 											   or:"--help"
 									  withDefault:NO];
-			
+						
 		/*********************************************************************\
 		|* Check for help
 		\*********************************************************************/
@@ -73,6 +84,47 @@ int main(int argc, const char * argv[])
 					}
 				}
 			}
+			
+		/*********************************************************************\
+		|* If we have no vectorSpec, generate it from the CSV file
+		\*********************************************************************/
+		NSString *vecs = vUser;
+		if ([vUser length] == 0)
+			{
+			NSMutableString *vGen 	= [NSMutableString new];
+			NSArray * cols		 	= [csv columns];
+			NSDictionary *line		= [csv nextLine];
+			[csv pushBack:line];
+			
+			int idx = -1;
+			NSString *comma = @"";
+			for (NSString *column in cols)
+				{
+				idx ++;
+				if ([column isEqualToString:tsCol])
+					continue;
+				
+				NSUInteger width = 1;
+				NSString *entry = [line objectForKey:column];
+				if ([entry length] > 1)
+					width = 4 * [entry length];
+				
+				[vGen appendFormat:@"%@%@:%d", comma, column, (int)width];
+				comma = @",";
+				}
+			
+			vecs = vGen;
+			}
+
+		/*********************************************************************\
+		|* Figure out the length of a line of data
+		\*********************************************************************/
+		NSDictionary *line = [csv nextLine];
+		int lineLen = [csv lineLength];
+		[csv pushBack:line];
+		
+		NSFileManager *fm = [NSFileManager defaultManager];
+		uint64_t fileSize = [[fm attributesOfItemAtPath:file1 error:nil] fileSize];
 		
 		/*********************************************************************\
 		|* Create the VCD writer
@@ -82,11 +134,13 @@ int main(int argc, const char * argv[])
 		[vcd setSyncCol:syncCol];
 		[vcd setCsv:csv];
 		[vcd registerVars:vecs];
+		[vcd setLineSize:lineLen];
+		[vcd setFileSize:fileSize];
 
 		if ([vcd openOutputFile:output])
 			{
 			[vcd writePreamble];
-			[vcd writeData];
+			[vcd writeData:!hideProgress];
 			[vcd closeOutputFile];
 			}
 		else
@@ -104,7 +158,7 @@ void usage(void)
 	printf("Usage: csvtovcd [options] where options are:\n"
 		"  -i | --input-file       <input.csv> \n"
 		"  -h | --help             show this wonderful text\n"
-		"  -o | --output-file      <output.vcd\n"
+		"  -o | --output-file      <output.vcd>\n"
 		"  -s | --sample column    <sample-id column name>   [Sample Number]\n"
 		"  -t | --timestamp-column <timestamp column-name>   [Time]\n"
 		"  -v | --vectors          <name:width>[,<name:width>,..]\n"

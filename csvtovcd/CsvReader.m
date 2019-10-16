@@ -17,6 +17,9 @@
 	{
 	if (self = [super init])
 		{
+		_lineLength = 0;
+		_columns 	= nil;
+		
 		/*********************************************************************\
 		|* Open the file for read
 		\*********************************************************************/
@@ -49,6 +52,9 @@
 	NSMutableArray *array = [NSMutableArray array];
 	if (!eof)
 		{
+		if (_columns != nil)
+			_lineLength = (int) strlen(buf);
+			
 		NSCharacterSet *set	= [NSCharacterSet characterSetWithCharactersInString:@" \t\n\r\""];
 		NSString *line 		= [NSString stringWithUTF8String:buf];
 		NSArray *items 		= [line componentsSeparatedByString:@","];

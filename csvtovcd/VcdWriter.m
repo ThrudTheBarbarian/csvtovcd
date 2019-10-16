@@ -147,12 +147,28 @@
 /*****************************************************************************\
 |* Write the VCD data
 \*****************************************************************************/
-- (void) writeData
+- (void) writeData:(BOOL)showProgress
 	{
 	NSDictionary *line = [_csv nextLine];
 	NSMutableString *info = [NSMutableString new];
+	uint64_t count = 0;
+	int lastPercent = 0;
+	
+	if (showProgress)
+		fprintf(stderr, "Progress:  0%%");
+		
 	while (line != nil)
 		{
+		count += _lineSize;
+		if (showProgress)
+			{
+			if ((count * 100)/_fileSize > lastPercent + 1)
+				{
+				lastPercent ++;
+				fprintf(stderr, "%c[D%c[D%c[D%2d%%", 27, 27,27, lastPercent);
+				}
+			}
+			
 		[info setString:@""];
 		uint64_t cron = [(NSString *)[line objectForKey:_timeCol] picosecs];
 		
@@ -171,6 +187,8 @@
 			}
 		line = [_csv nextLine];
 		}
+	if (showProgress)
+		fprintf(stderr, "\n");
 	}
 
 @end
