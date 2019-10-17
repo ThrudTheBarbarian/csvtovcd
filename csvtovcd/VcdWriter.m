@@ -183,7 +183,7 @@
 		if ([info length])
 			{
 			fprintf(_fp, "#%llu\n%s\n", cron, [info UTF8String]);
-			//fflush(_fp);
+			fflush(_fp);
 			}
 		line = [_csv nextLine];
 		}
