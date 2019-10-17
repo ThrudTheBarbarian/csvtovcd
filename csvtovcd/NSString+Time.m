@@ -8,13 +8,16 @@
 
 #import "NSString+Time.h"
 
+#define NO_OFFSET -1000000000
 @implementation NSString (Time)
 
 /*****************************************************************************\
 |* Convert a string time-specification to picoseconds
 \*****************************************************************************/
-- (uint64_t) picosecs
+- (int64_t) picosecs
 	{
+	static int64_t offset = NO_OFFSET;
+	
 	char 	unit[32];
 	double	value;
 	uint64_t ns = 0;
@@ -38,7 +41,14 @@
 				break;
 			}
 		
-		ns = (uint64_t)(value * multiply);
+		ns = (int64_t)(value * multiply);
+		if (offset == NO_OFFSET)
+			{
+			offset = ns;
+			ns = 0;
+			}
+		else
+			ns -= offset;
 		}
 		
 	return ns;
