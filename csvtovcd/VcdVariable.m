@@ -33,9 +33,6 @@
 	{
 	NSString *result = nil;
 	char c			 = (char)_identifier;
-	NSString *rpt	 = [@"" stringByPaddingToLength:_bitWidth
-										 withString:@"x"
-								    startingAtIndex:0];
 	
 	switch (_bitWidth)
 		{
@@ -48,7 +45,13 @@
 		
 		default:
 			if (!_valid)
+				{
+				NSString *rpt	 = [@"" stringByPaddingToLength:_bitWidth
+									 withString:@"x"
+								startingAtIndex:0];
+
 				result = [NSString stringWithFormat:@"b%@ %c", rpt, c];
+				}
 			else
 				result = [NSString stringWithFormat:@"b%@ %c",
 							[self binaryRep], c];

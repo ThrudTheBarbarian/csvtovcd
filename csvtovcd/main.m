@@ -40,7 +40,7 @@ int main(int argc, const char * argv[])
 		char * oname = (char *)[ofile UTF8String];
 		
 		NSString *syncCol	= [ArgParser stringFor:"-s"
-												or:"--sample-column"
+												or:"--sample-number"
 									   withDefault:"Sample Number"];
 		NSString *tsCol	 	= [ArgParser stringFor:"-t"
 												or:"--timestamp-column"

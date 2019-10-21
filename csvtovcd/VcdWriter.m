@@ -159,36 +159,41 @@
 		
 	while (line != nil)
 		{
-		count += _lineSize;
-		if (showProgress)
+		@autoreleasepool
 			{
-			if ((count * 100)/_fileSize > lastPercent + 1)
+			count += _lineSize;
+			if (showProgress)
 				{
-				lastPercent ++;
-				fprintf(stderr, "%c[D%c[D%c[D%2d%%", 27, 27,27, lastPercent);
+				if ((count * 100)/_fileSize > lastPercent + 1)
+					{
+					lastPercent = (lastPercent < 99) ? lastPercent + 1 : 99;
+					fprintf(stderr, "%c[D%c[D%c[D%2d%%", 27, 27,27, lastPercent);
+					}
 				}
-			}
+				
+			[info setString:@""];
 			
-		[info setString:@""];
-		int64_t cron = [(NSString *)[line objectForKey:_timeCol] picosecs];
-		
-		for (NSString *col in [line allKeys])
-			{
-			VcdVariable *var = [_values objectForKey:col];
-			uint64_t newVal	 = [self _stateFor:[line objectForKey:col]];
-			BOOL changed     = [var setValue:newVal];
-			if (changed)
-				[info appendFormat:@"%@\n", [var description]];
+			[info setString:@""];
+			int64_t cron = [(NSString *)[line objectForKey:_timeCol] picosecs];
+			
+			for (NSString *col in [line allKeys])
+				{
+				VcdVariable *var = [_values objectForKey:col];
+				uint64_t newVal	 = [self _stateFor:[line objectForKey:col]];
+				BOOL changed     = [var setValue:newVal];
+				if (changed)
+					[info appendFormat:@"%@\n", [var description]];
+				}
+			if ([info length])
+				{
+				fprintf(_fp, "#%llu\n%s\n", cron, [info UTF8String]);
+				fflush(_fp);
+				}
+			line = [_csv nextLine];
 			}
-		if ([info length])
-			{
-			fprintf(_fp, "#%llu\n%s\n", cron, [info UTF8String]);
-			fflush(_fp);
-			}
-		line = [_csv nextLine];
 		}
 	if (showProgress)
-		fprintf(stderr, "\n");
+		fprintf(stderr, "%c[D%c[D%c[D100%%\n", 27, 27, 27);
 	}
 
 @end
