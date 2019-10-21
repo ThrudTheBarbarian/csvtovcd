@@ -15,114 +15,39 @@
 @implementation VcdWriter
 
 
-/*****************************************************************************\
-|* Initialise an instance of the VCD writer
-\*****************************************************************************/
-- (id) init
-	{
-	if (self = [super init])
-		{
-		_nextId	= 33;							// identifiers start at 33
-		_values	= [NSMutableDictionary new];
-		}
-	return self;
-	}
-
-
-/*****************************************************************************\
-|* Open a file for output
-\*****************************************************************************/
-- (bool) openOutputFile:(NSString *)pathToFile
-	{
-	bool ok 			= YES;
-	const char *path	= [pathToFile fileSystemRepresentation];
-	_fp 				= fopen(path, "w");
-
-	if (_fp == NULL)
-		{
-		fprintf(stderr, "Failed to open output file %s\n", path);
-		ok = NO;
-		}
-
-	return ok;
-	}
-
-/*****************************************************************************\
-|* Close the output file
-\*****************************************************************************/
-- (void) closeOutputFile
-	{
-	fclose(_fp);
-	}
-
-/*****************************************************************************\
-|* Run through the CSV vars, and create appropriate vectors and scalars
-\*****************************************************************************/
-- (void) registerVars:(NSString *)vectorSpec
-	{
-	/*************************************************************************\
-	|* Parse the vector spec into a dictionary format
-	\*************************************************************************/
-	NSMutableDictionary *V = [NSMutableDictionary new];
-	NSArray *vecs = [vectorSpec componentsSeparatedByString:@","];
-	for (NSString *vec in vecs)
-		{
-		NSArray *kv = [vec componentsSeparatedByString:@":"];
-		if ([kv count] == 2)
-			[V setObject:[kv objectAtIndex:1] forKey:[kv objectAtIndex:0]];
-		}
-
-	/*************************************************************************\
-	|* Now run through the CsvReader variables, creating VcdVariables from them
-	\*************************************************************************/
-	for (NSString *name in [_csv columns])
-		{
-		if ((_syncCol != nil) && ([name isEqualToString:_syncCol]))
-			continue;
-		if ((_timeCol != nil) && ([name isEqualToString:_timeCol]))
-			continue;
-		NSString *varWidth = [V objectForKey:name];
-		int width = 1;
-		if (varWidth != nil)
-			width = [varWidth intValue];
-		
-		VcdVariable *var = [VcdVariable new];
-		[var setBitWidth:width];
-		[var setIdentifier:_nextId++];
-		[_values setObject:var forKey:name];
-		}
-	}
-
 
 /*****************************************************************************\
 |* Write the VCD preamble
 \*****************************************************************************/
-- (void) writePreamble
+- (void) writePrefix
 	{
 	NSString *now	= [NSDateFormatter localizedStringFromDate:[NSDate date]
 													 dateStyle:NSDateFormatterShortStyle
 													 timeStyle:NSDateFormatterShortStyle];
-		
-	fprintf(_fp, "$date\n\t%s\n$end\n", [now UTF8String]);
-	fprintf(_fp, "$version\n\tcsvtovcd v1.0\n$end\n");
-	fprintf(_fp, "$timescale 1ps $end\n");
 	
-	fprintf(_fp, "$scope module logic $end\n");
+	FILE *fp 				= [self fp];
+	NSDictionary *values	= [self values];
+	
+	fprintf(fp, "$date\n\t%s\n$end\n", [now UTF8String]);
+	fprintf(fp, "$version\n\tcsvtovcd v1.0\n$end\n");
+	fprintf(fp, "$timescale 1ps $end\n");
+	
+	fprintf(fp, "$scope module logic $end\n");
 
-	for (NSString *name in [_values allKeys])
+	for (NSString *name in [values allKeys])
 		{
-		VcdVariable *var = [_values objectForKey:name];
-		fprintf(_fp, "$var wire %d %c %s $end\n",
+		VcdVariable *var = [values objectForKey:name];
+		fprintf(fp, "$var wire %d %c %s $end\n",
 					[var bitWidth],
 					(char)[var identifier],
 					[name UTF8String]);
 		}
-	fprintf(_fp, "$upscope $end\n$dumpvars\n");
+	fprintf(fp, "$upscope $end\n$dumpvars\n");
 	
-	for (VcdVariable *var in [_values allValues])
-		fprintf(_fp, "%s\n", [[var description] UTF8String]);
-	fprintf(_fp, "$end\n");
-	fflush(_fp);
+	for (VcdVariable *var in [values allValues])
+		fprintf(fp, "%s\n", [[var description] UTF8String]);
+	fprintf(fp, "$end\n");
+	fflush(fp);
 	}
 
 
@@ -149,10 +74,18 @@
 \*****************************************************************************/
 - (void) writeData:(BOOL)showProgress
 	{
-	NSDictionary *line = [_csv nextLine];
-	NSMutableString *info = [NSMutableString new];
-	uint64_t count = 0;
-	int lastPercent = 0;
+	// Hoist these out of the loop to reduce overhead a bit
+	CsvReader *csv 			= [self csv];
+	FILE *fp 				= [self fp];
+	int lineSize			= [self lineSize];
+	uint64_t fileSize		= [self fileSize];
+	NSString *timeCol		= [self timeCol];
+	NSDictionary *vals		= [self values];
+	
+	NSDictionary *line 		= [csv nextLine];
+	NSMutableString *info 	= [NSMutableString new];
+	uint64_t count 			= 0;
+	int lastPercent 		= 0;
 	
 	if (showProgress)
 		fprintf(stderr, "Progress:  0%%");
@@ -161,10 +94,10 @@
 		{
 		@autoreleasepool
 			{
-			count += _lineSize;
+			count += lineSize;
 			if (showProgress)
 				{
-				if ((count * 100)/_fileSize > lastPercent + 1)
+				if ((count * 100)/fileSize > lastPercent + 1)
 					{
 					lastPercent = (lastPercent < 99) ? lastPercent + 1 : 99;
 					fprintf(stderr, "%c[D%c[D%c[D%2d%%", 27, 27,27, lastPercent);
@@ -174,11 +107,11 @@
 			[info setString:@""];
 			
 			[info setString:@""];
-			int64_t cron = [(NSString *)[line objectForKey:_timeCol] picosecs];
+			int64_t cron = [(NSString *)[line objectForKey:timeCol] picosecs];
 			
 			for (NSString *col in [line allKeys])
 				{
-				VcdVariable *var = [_values objectForKey:col];
+				VcdVariable *var = [vals objectForKey:col];
 				uint64_t newVal	 = [self _stateFor:[line objectForKey:col]];
 				BOOL changed     = [var setValue:newVal];
 				if (changed)
@@ -186,14 +119,15 @@
 				}
 			if ([info length])
 				{
-				fprintf(_fp, "#%llu\n%s\n", cron, [info UTF8String]);
-				fflush(_fp);
+				fprintf(fp, "#%llu\n%s\n", cron, [info UTF8String]);
+				fflush(fp);
 				}
-			line = [_csv nextLine];
+			line = [csv nextLine];
 			}
 		}
 	if (showProgress)
 		fprintf(stderr, "%c[D%c[D%c[D100%%\n", 27, 27, 27);
 	}
+
 
 @end

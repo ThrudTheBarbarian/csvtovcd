@@ -13,6 +13,8 @@
 		F47A10AE205ACCF30026F3C3 /* NSString+Time.m in Sources */ = {isa = PBXBuildFile; fileRef = F47A10AD205ACCF30026F3C3 /* NSString+Time.m */; };
 		F47A10B1205AD0320026F3C3 /* VcdWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = F47A10B0205AD0320026F3C3 /* VcdWriter.m */; };
 		F47A10B4205AD4C20026F3C3 /* VcdVariable.m in Sources */ = {isa = PBXBuildFile; fileRef = F47A10B2205AD4C10026F3C3 /* VcdVariable.m */; };
+		F49A4EF9235E0950005D9E4B /* TbWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = F49A4EF8235E0950005D9E4B /* TbWriter.m */; };
+		F49A4EFC235E0C3E005D9E4B /* Writer.m in Sources */ = {isa = PBXBuildFile; fileRef = F49A4EFB235E0C3E005D9E4B /* Writer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -40,6 +42,10 @@
 		F47A10B0205AD0320026F3C3 /* VcdWriter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VcdWriter.m; sourceTree = "<group>"; };
 		F47A10B2205AD4C10026F3C3 /* VcdVariable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VcdVariable.m; sourceTree = "<group>"; };
 		F47A10B3205AD4C10026F3C3 /* VcdVariable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VcdVariable.h; sourceTree = "<group>"; };
+		F49A4EF7235E0950005D9E4B /* TbWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TbWriter.h; sourceTree = "<group>"; };
+		F49A4EF8235E0950005D9E4B /* TbWriter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TbWriter.m; sourceTree = "<group>"; };
+		F49A4EFA235E0C3E005D9E4B /* Writer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Writer.h; sourceTree = "<group>"; };
+		F49A4EFB235E0C3E005D9E4B /* Writer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Writer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,10 +85,14 @@
 				F47A109F205AC5F10026F3C3 /* main.m */,
 				F47A10AC205ACCF30026F3C3 /* NSString+Time.h */,
 				F47A10AD205ACCF30026F3C3 /* NSString+Time.m */,
-				F47A10AF205AD0320026F3C3 /* VcdWriter.h */,
-				F47A10B0205AD0320026F3C3 /* VcdWriter.m */,
 				F47A10B3205AD4C10026F3C3 /* VcdVariable.h */,
 				F47A10B2205AD4C10026F3C3 /* VcdVariable.m */,
+				F49A4EFA235E0C3E005D9E4B /* Writer.h */,
+				F49A4EFB235E0C3E005D9E4B /* Writer.m */,
+				F47A10AF205AD0320026F3C3 /* VcdWriter.h */,
+				F47A10B0205AD0320026F3C3 /* VcdWriter.m */,
+				F49A4EF7235E0950005D9E4B /* TbWriter.h */,
+				F49A4EF8235E0950005D9E4B /* TbWriter.m */,
 			);
 			path = csvtovcd;
 			sourceTree = "<group>";
@@ -113,7 +123,7 @@
 		F47A1094205AC5F10026F3C3 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1000;
+				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = "Me, myself, and I";
 				TargetAttributes = {
 					F47A109B205AC5F10026F3C3 = {
@@ -143,12 +153,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F49A4EFC235E0C3E005D9E4B /* Writer.m in Sources */,
 				F47A10B1205AD0320026F3C3 /* VcdWriter.m in Sources */,
 				F47A10AB205ACADB0026F3C3 /* ArgParser.m in Sources */,
 				F47A10AE205ACCF30026F3C3 /* NSString+Time.m in Sources */,
 				F47A10A0205AC5F10026F3C3 /* main.m in Sources */,
 				F47A10A8205AC6340026F3C3 /* CsvReader.m in Sources */,
 				F47A10B4205AD4C20026F3C3 /* VcdVariable.m in Sources */,
+				F49A4EF9235E0950005D9E4B /* TbWriter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,6 +279,7 @@
 		F47A10A4205AC5F10026F3C3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -275,6 +288,7 @@
 		F47A10A5205AC5F10026F3C3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

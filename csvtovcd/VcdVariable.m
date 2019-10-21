@@ -12,6 +12,9 @@
 - (NSString *)binaryRep;
 @end
 
+#define ALLOW @"abcdefghijklmnopqrstuvwxyz" \
+               "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
+
 @implementation VcdVariable
 
 /*****************************************************************************\
@@ -84,6 +87,21 @@
 	_value = newValue;
 	_valid = YES;
 	return changed;
+	}
+
+/*****************************************************************************\
+|* Make sure the variable names are valid
+\*****************************************************************************/
+- (char *) saneName
+	{
+	NSCharacterSet *s = [NSCharacterSet characterSetWithCharactersInString:ALLOW];
+	s				  = [s invertedSet];
+	NSArray *regions  = [_name componentsSeparatedByCharactersInSet:s];
+	
+	NSString *newName = [regions componentsJoinedByString:@""];
+	if ([_name rangeOfString:@"/"].location != NSNotFound)
+		newName = [NSString stringWithFormat:@"%@_n", newName];
+	return (char *) [newName UTF8String];
 	}
 
 #pragma mark -

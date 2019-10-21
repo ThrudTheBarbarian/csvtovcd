@@ -10,6 +10,7 @@
 #import "ArgParser.h"
 #import "CsvReader.h"
 #import "VcdWriter.h"
+#import "TbWriter.h"
 
 /*****************************************************************************\
 |* Forward declarations
@@ -50,6 +51,9 @@ int main(int argc, const char * argv[])
 									   withDefault:oname];
 		NSString *vUser  	= [ArgParser stringFor:"-v"
 												or:"--vectors"
+									   withDefault:""];
+		NSString *module  	= [ArgParser stringFor:"-m"
+												or:"--module"
 									   withDefault:""];
 		BOOL hideProgress	= [ArgParser  flagFor:"-p"
 											   or:"--hide-progress"
@@ -126,25 +130,48 @@ int main(int argc, const char * argv[])
 		NSFileManager *fm = [NSFileManager defaultManager];
 		uint64_t fileSize = [[fm attributesOfItemAtPath:file1 error:nil] fileSize];
 		
-		/*********************************************************************\
-		|* Create the VCD writer
-		\*********************************************************************/
-		VcdWriter *vcd = [VcdWriter new];
-		[vcd setTimeCol:tsCol];
-		[vcd setSyncCol:syncCol];
-		[vcd setCsv:csv];
-		[vcd registerVars:vecs];
-		[vcd setLineSize:lineLen];
-		[vcd setFileSize:fileSize];
 
-		if ([vcd openOutputFile:output])
+		/*********************************************************************\
+		|* If we have a module name, then assume test-bench output
+		\*********************************************************************/
+		Writer *writer = nil;
+		
+		if ([module length] > 0)
 			{
-			[vcd writePreamble];
-			[vcd writeData:!hideProgress];
-			[vcd closeOutputFile];
+			TbWriter *tb=  [TbWriter new];
+			[tb setModule:module];
+			writer = tb;
+			
+			if ([output hasSuffix:@".vcd"])
+				{
+				output = [output stringByDeletingPathExtension];
+				output = [NSString stringWithFormat:@"%@.v", output];
+				}
 			}
 		else
-			fprintf(stderr, "Cannot open VCD file '%s' for output\n",
+			{
+			/*********************************************************************\
+			|* Create the VCD writer
+			\*********************************************************************/
+			VcdWriter *vcd = [VcdWriter new];
+			writer = vcd;
+			}
+			
+		[writer setTimeCol:tsCol];
+		[writer setSyncCol:syncCol];
+		[writer setCsv:csv];
+		[writer registerVars:vecs];
+		[writer setLineSize:lineLen];
+		[writer setFileSize:fileSize];
+
+		if ([writer openOutputFile:output])
+			{
+			[writer writePrefix];
+			[writer writeData:!hideProgress];
+			[writer closeOutputFile];
+			}
+		else
+			fprintf(stderr, "Cannot open file '%s' for output\n",
 					[output fileSystemRepresentation]);
 		}
 	return 0;
@@ -158,6 +185,7 @@ void usage(void)
 	printf("Usage: csvtovcd [options] where options are:\n"
 		"  -i | --input-file       <input.csv> \n"
 		"  -h | --help             show this wonderful text\n"
+		"  -m | --module           <module_name> for testbench output\n"
 		"  -o | --output-file      <output.vcd>\n"
 		"  -s | --sample column    <sample-id column name>   [Sample Number]\n"
 		"  -t | --timestamp-column <timestamp column-name>   [Time]\n"
