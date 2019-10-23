@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 @property (strong, nonatomic) NSString *			module;
+@property (assign, nonatomic) BOOL					outputPrefix;
+@property (assign, nonatomic) BOOL					outputPostfix;
 @end
 
 NS_ASSUME_NONNULL_END

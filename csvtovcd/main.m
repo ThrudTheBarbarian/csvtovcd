@@ -55,6 +55,12 @@ int main(int argc, const char * argv[])
 		NSString *module  	= [ArgParser stringFor:"-m"
 												or:"--module"
 									   withDefault:""];
+		BOOL prefix			= [ArgParser  flagFor:"-mp"
+											   or:"--module-preamble"
+									  withDefault:NO];
+		BOOL postfix		= [ArgParser  flagFor:"-mP"
+											   or:"--module-postfix"
+									  withDefault:NO];
 		BOOL hideProgress	= [ArgParser  flagFor:"-p"
 											   or:"--hide-progress"
 									  withDefault:NO];
@@ -140,6 +146,8 @@ int main(int argc, const char * argv[])
 			{
 			TbWriter *tb=  [TbWriter new];
 			[tb setModule:module];
+			[tb setOutputPrefix:prefix];
+			[tb setOutputPostfix:postfix];
 			writer = tb;
 			
 			if ([output hasSuffix:@".vcd"])

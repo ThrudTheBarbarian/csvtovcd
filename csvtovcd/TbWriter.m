@@ -25,7 +25,9 @@
 	
 	FILE *fp 				= [self fp];
 	NSDictionary *values	= [self values];
-	
+	char * modName			= (char *)[_module UTF8String];
+	NSUInteger num 			= [values count];
+
 	/*************************************************************************\
 	|* Start the module definition
 	\*************************************************************************/
@@ -33,7 +35,7 @@
 				"`timescale 1ns / 100ps\n\n"
 				"module %s_tb();\n",
 				[now UTF8String],
-				[_module UTF8String]);
+				modName);
 	
 	/*************************************************************************\
 	|* Inputs to the module are reg-type
@@ -72,14 +74,44 @@
 										 startingAtIndex:0] UTF8String]);
 			}
 		}
+	fprintf(fp, "\tend\n");
+
 
 	/*************************************************************************\
-	|* Include a file for the actual testing
+	|* Include a preamble if requested
 	\*************************************************************************/
-	fprintf(fp, "\n\n\t// Include test logic\n"
-				"\t`include \"%s_test.v\"\n", [_module UTF8String]);
-		
-	fprintf(fp, "\tend\n");
+	if (_outputPrefix)
+		{
+		fprintf(fp, "\n\n\t// Include preamble logic\n"
+					"\t`include \"%s_pre.v\"\n", modName);
+		}
+
+	/*************************************************************************\
+	|* Instantiate the module instance
+	\*************************************************************************/
+	fprintf(fp, "\n\n\t// create module instance\n"
+				"\t%s %s_inst\n"
+				"\t(\n", modName, modName);
+	
+	NSUInteger count	= 0;
+	for (VcdVariable *var in [values allValues])
+		{
+		char * comma   = (++count < num) ? (",") : ("");
+		char *saneName = [var saneName];
+		fprintf(fp, "\t.%s(%s)%s\n", saneName, saneName, comma);
+		}
+	fprintf(fp, "\t);\n");
+
+
+	/*************************************************************************\
+	|* Include a postamble if requested
+	\*************************************************************************/
+	if (_outputPostfix)
+		{
+		fprintf(fp, "\n\n\t// Include postfix logic\n"
+					"\t`include \"%s_post.v\"\n", modName);
+		}
+
 	}
 
 
