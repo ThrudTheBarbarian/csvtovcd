@@ -191,13 +191,16 @@ int main(int argc, const char * argv[])
 void usage(void)
 	{
 	printf("Usage: csvtovcd [options] where options are:\n"
-		"  -i | --input-file       <input.csv> \n"
-		"  -h | --help             show this wonderful text\n"
-		"  -m | --module           <module_name> for testbench output\n"
-		"  -o | --output-file      <output.vcd>\n"
-		"  -s | --sample column    <sample-id column name>   [Sample Number]\n"
-		"  -t | --timestamp-column <timestamp column-name>   [Time]\n"
-		"  -v | --vectors          <name:width>[,<name:width>,..]\n"
+		"  -i  | --input-file       <input.csv> \n"
+		"  -h  | --help             show this wonderful text\n"
+		"  -m  | --module           <module_name> for testbench output\n"
+		"  -mp | --module-prefix    <filename> for verilog include file\n"
+		"  -mP | --module-postfix   <filename> for verilog include file\n"
+		"  -o  | --output-file      <output.vcd>\n"
+		"  -p  | --hide-progress    don't show progress\n"
+		"  -s  | --sample column    <sample-id column name>   [Sample Number]\n"
+		"  -t  | --timestamp-column <timestamp column-name>   [Time]\n"
+		"  -v  | --vectors          <name:width>[,<name:width>,..]\n"
 		);
 	exit(0);
 	}
