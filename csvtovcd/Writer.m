@@ -70,6 +70,8 @@
 		NSArray *kv = [vec componentsSeparatedByString:@":"];
 		if ([kv count] == 2)
 			[V setObject:[kv objectAtIndex:1] forKey:[kv objectAtIndex:0]];
+		else if ([kv count] == 1)
+			[V setObject:@"1" forKey:[kv objectAtIndex:0]];
 		}
 
 	/*************************************************************************\
@@ -82,15 +84,18 @@
 		if ((_timeCol != nil) && ([name isEqualToString:_timeCol]))
 			continue;
 		NSString *varWidth = [V objectForKey:name];
-		int width = 1;
-		if (varWidth != nil)
-			width = [varWidth intValue];
-		
-		VcdVariable *var = [VcdVariable new];
-		[var setName:name];
-		[var setBitWidth:width];
-		[var setIdentifier:_nextId++];
-		[_values setObject:var forKey:name];
+		if (varWidth)
+			{
+			int width = 1;
+			if (varWidth != nil)
+				width = [varWidth intValue];
+			
+			VcdVariable *var = [VcdVariable new];
+			[var setName:name];
+			[var setBitWidth:width];
+			[var setIdentifier:_nextId++];
+			[_values setObject:var forKey:name];
+			}
 		}
 	}
 

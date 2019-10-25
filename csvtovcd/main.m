@@ -55,6 +55,9 @@ int main(int argc, const char * argv[])
 		NSString *module  	= [ArgParser stringFor:"-m"
 												or:"--module"
 									   withDefault:""];
+		NSString *mclock  	= [ArgParser stringFor:"-mc"
+												or:"--module-clock"
+									   withDefault:""];
 		BOOL prefix			= [ArgParser  flagFor:"-mp"
 											   or:"--module-preamble"
 									  withDefault:NO];
@@ -94,7 +97,7 @@ int main(int argc, const char * argv[])
 					}
 				}
 			}
-			
+					
 		/*********************************************************************\
 		|* If we have no vectorSpec, generate it from the CSV file
 		\*********************************************************************/
@@ -148,6 +151,7 @@ int main(int argc, const char * argv[])
 			[tb setModule:module];
 			[tb setOutputPrefix:prefix];
 			[tb setOutputPostfix:postfix];
+			[tb setModuleClock:mclock];
 			writer = tb;
 			
 			if ([output hasSuffix:@".vcd"])
@@ -196,6 +200,7 @@ void usage(void)
 		"  -m  | --module           <module_name> for testbench output\n"
 		"  -mp | --module-prefix    <filename> for verilog include file\n"
 		"  -mP | --module-postfix   <filename> for verilog include file\n"
+		"  -mc | --module-clock     <name> of signal to aggregate by\n"
 		"  -o  | --output-file      <output.vcd>\n"
 		"  -p  | --hide-progress    don't show progress\n"
 		"  -s  | --sample column    <sample-id column name>   [Sample Number]\n"

@@ -46,7 +46,7 @@
 		VcdVariable *var = [values objectForKey:name];
 		char *saneName = [var saneName];
 		if ([var bitWidth] == 1)
-			fprintf(fp, "\treg\t\t%s;\n", saneName);
+			fprintf(fp, "\treg\t\t\t%s;\n", saneName);
 		else
 			fprintf(fp, "\treg [%d:0]\t%s;\n", [var bitWidth]-1, saneName);
 			
@@ -61,7 +61,7 @@
 		{
 		char *saneName = [var saneName];
 		if ([var bitWidth] == 1)
-			fprintf(fp, "\t\t%s=1'bx;\n", saneName);
+			fprintf(fp, "\t\t%s\t\t=1'bx;\n", saneName);
 		else
 			{
 			int len = [var bitWidth];
@@ -134,6 +134,82 @@
 	}
 
 /*****************************************************************************\
+|* Write the testbench signal data, filtered by a clock signal
+\*****************************************************************************/
+- (void) _writeFilteredData
+	{
+	NSMutableDictionary *filter = [NSMutableDictionary new];
+
+	// Hoist these out of the loop to reduce overhead a bit
+	CsvReader *csv 			= [self csv];
+	FILE *fp 				= [self fp];
+	NSString *timeCol		= [self timeCol];
+	NSDictionary *vals		= [self values];
+	
+	NSDictionary *line 		= [csv nextLine];
+
+	fprintf(fp, "\n\n\t// Start iterating the filtered values\n"
+				"\tinitial begin\n");
+				
+	while (line != nil)
+		{
+		@autoreleasepool
+			{
+			int64_t cron = [(NSString *)[line objectForKey:timeCol] picosecs] / 1000;
+			
+			BOOL clockChanged = NO;
+			for (NSString *col in [line allKeys])
+				{
+				VcdVariable *var = [vals objectForKey:col];
+				uint64_t newVal	 = [self _stateFor:[line objectForKey:col]];
+				BOOL changed     = [var setValue:newVal];
+				if (changed)
+					{
+					if ([[var name] isEqualToString:_moduleClock])
+						clockChanged = YES;
+					[var setCron:cron];
+					[filter setObject:var forKey:[var name]];
+					}
+				}
+			if (clockChanged)
+				{
+				NSArray *sorted  = [filter keysSortedByValueUsingComparator:^NSComparisonResult(id a, id b)
+						{
+						VcdVariable *v1 = (VcdVariable *)a;
+						VcdVariable *v2 = (VcdVariable *)b;
+						return ([v1 cron] < [v2 cron]) ? NSOrderedAscending
+							 : ([v1 cron] > [v2 cron]) ? NSOrderedDescending
+							 : NSOrderedSame;
+						}];
+				cron = -1;
+				for (NSString *key in sorted)
+					{
+					VcdVariable *v = [filter objectForKey:key];
+					
+					if (cron != [v cron])
+						{
+						fprintf(fp, "\t#%llu\n", [v cron]);
+						cron = [v cron];
+						}
+						
+					if ([v bitWidth] == 1)
+						
+						fprintf(fp, "\t\t%s = %lld;\n", [v saneName], [v value]);
+					else
+					
+						fprintf(fp, "\t\t%s = %d'h%llx;\n", [v saneName], [v bitWidth], [v value]);
+
+					}
+				fflush(fp);
+				[filter removeAllObjects];
+				}
+			line = [csv nextLine];
+			}
+		}
+	fprintf(fp, "\tend\nendmodule\n");
+	}
+	
+/*****************************************************************************\
 |* Write the testbench signal data
 \*****************************************************************************/
 - (void) writeData:(BOOL)showProgress
@@ -147,40 +223,44 @@
 	NSDictionary *line 		= [csv nextLine];
 	NSMutableString *info 	= [NSMutableString new];
 
-	fprintf(fp, "\n\n\t// Start iterating the values\n"
-				"\tinitial begin\n");
-
-	while (line != nil)
+	if ([_moduleClock length] > 0)
+		[self _writeFilteredData];
+	else
 		{
-		@autoreleasepool
+		fprintf(fp, "\n\n\t// Start iterating the values\n"
+					"\tinitial begin\n");
+
+		while (line != nil)
 			{
-			[info setString:@""];
-			int64_t cron = [(NSString *)[line objectForKey:timeCol] picosecs] / 1000;
-			
-			for (NSString *col in [line allKeys])
+			@autoreleasepool
 				{
-				VcdVariable *var = [vals objectForKey:col];
-				uint64_t newVal	 = [self _stateFor:[line objectForKey:col]];
-				BOOL changed     = [var setValue:newVal];
-				if (changed)
-					{
-					if ([var bitWidth] == 1)
-						[info appendFormat:@"\t\t%s = %lld;\n", [var saneName], newVal];
-					else
-						[info appendFormat:@"\t\t%s = %d'h%llx;\n", [var saneName], [var bitWidth], newVal];
-					}
+				[info setString:@""];
+				int64_t cron = [(NSString *)[line objectForKey:timeCol] picosecs] / 1000;
 				
+				for (NSString *col in [line allKeys])
+					{
+					VcdVariable *var = [vals objectForKey:col];
+					uint64_t newVal	 = [self _stateFor:[line objectForKey:col]];
+					BOOL changed     = [var setValue:newVal];
+					if (changed)
+						{
+						if ([var bitWidth] == 1)
+							[info appendFormat:@"\t\t%s = %lld;\n", [var saneName], newVal];
+						else
+							[info appendFormat:@"\t\t%s = %d'h%llx;\n", [var saneName], [var bitWidth], newVal];
+						}
+					
+					}
+				if ([info length])
+					{
+					fprintf(fp, "\t#%llu\n%s\n", cron, [info UTF8String]);
+					fflush(fp);
+					}
+				line = [csv nextLine];
 				}
-			if ([info length])
-				{
-				fprintf(fp, "\t#%llu\n%s\n", cron, [info UTF8String]);
-				fflush(fp);
-				}
-			line = [csv nextLine];
 			}
+		fprintf(fp, "\t$finish;\n\tend\nendmodule\n");
 		}
-	fprintf(fp, "\tend\nendmodule\n");
-	
 	}
 
 

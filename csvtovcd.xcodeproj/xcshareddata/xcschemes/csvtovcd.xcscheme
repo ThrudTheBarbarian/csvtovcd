@@ -55,6 +55,22 @@
             argument = "-i /Volumes/Data/atari/v3/xel-2ns-1M-steady.csv"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-v addr:16,data:8,clk:1,/s4:1,/s5:1,r/w:1,/rst:1,/ref:1,rd5:1,rd4:1,/mpd:1,/cctl:1,/D1xx:1,/extsel:1,/halt:1,/irq:1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-o /tmp/xel.v"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-m dut"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-mc clk"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
    <ProfileAction

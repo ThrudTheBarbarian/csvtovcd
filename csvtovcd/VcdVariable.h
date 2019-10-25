@@ -17,6 +17,7 @@
 |* set the value of the variable
 \*****************************************************************************/
 - (bool) setValue:(uint64_t)value;
+- (uint64_t) value;
 
 /*****************************************************************************\
 |* set the value of a bit within the variable
@@ -29,6 +30,7 @@
 - (char *) saneName;
 
 @property (assign, nonatomic)	int 		bitWidth;
+@property (assign, nonatomic)	int64_t		cron;
 @property (assign, nonatomic)	int			identifier;
 @property (assign, nonatomic)	bool		valid;
 @property (strong, nonatomic)	NSString*	name;
