@@ -8,6 +8,10 @@
 
 #import "CsvReader.h"
 
+#define BZIP2_CMD		@"bzip2 -dc %@"
+#define GZIP_CMD		@"gzip -dc %@"
+#define COMPRESS_CMD	@"uncompress -c %@"
+
 @implementation CsvReader
 
 /*****************************************************************************\
@@ -19,12 +23,33 @@
 		{
 		_lineLength = 0;
 		_columns 	= nil;
+		_usePipe	= NO;
 		
 		/*********************************************************************\
 		|* Open the file for read
 		\*********************************************************************/
 		const char *fname = [filename fileSystemRepresentation];
-		_file = fopen (fname, "r");
+		if ([filename hasSuffix:@".bz2"])
+			{
+			NSString *cmd = [NSString stringWithFormat:BZIP2_CMD, filename];
+			_file 		  = popen([cmd fileSystemRepresentation], "r");
+			_usePipe	  = YES;
+			}
+		else if ([filename hasSuffix:@".gz"])
+			{
+			NSString *cmd = [NSString stringWithFormat:GZIP_CMD, filename];
+			_file 		  = popen([cmd fileSystemRepresentation], "r");
+			_usePipe	  = YES;
+			}
+		else if ([filename hasSuffix:@".Z"])
+			{
+			NSString *cmd = [NSString stringWithFormat:COMPRESS_CMD, filename];
+			_file 		  = popen([cmd fileSystemRepresentation], "r");
+			_usePipe	  = YES;
+			}
+		else
+			_file = fopen (fname, "r");
+		
 		if (_file == NULL)
 			{
 			fprintf(stderr, "Cannot open file '%s'\n", fname);
@@ -36,9 +61,30 @@
 			|* Parse the first line for column names
 			\*****************************************************************/
 			_columns = [self readLine];
+			if (_columns == nil)
+				{
+				[self _close];
+				self = nil;
+				}
 			}
 		}
 	return self;
+	}
+
+/*****************************************************************************\
+|* Close down file access
+\*****************************************************************************/
+- (void) _close
+	{
+	if (_file != NULL)
+		{
+		if (_usePipe)
+			pclose(_file);
+		else
+			fclose(_file);
+		}
+	_file 		= NULL;
+	_usePipe 	= NO;
 	}
 
 /*****************************************************************************\
@@ -66,7 +112,9 @@
 			_numColumns ++;
 			}
 		}
-	
+	else
+		[self _close];
+		
 	if ([array count] == 0)
 		array = nil;
 		

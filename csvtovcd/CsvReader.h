@@ -33,8 +33,9 @@
 \*****************************************************************************/
 - (void) pushBack:(NSDictionary *)line;
 
-@property (assign, readonly, nonatomic) int lineLength;
-@property (strong, nonatomic) NSArray * columns;
-@property (assign, nonatomic) NSUInteger numColumns;
-@property (strong, nonatomic) NSDictionary * last;
+@property (assign, readonly, nonatomic) int 	lineLength;
+@property (strong, nonatomic) NSArray * 		columns;
+@property (assign, nonatomic) NSUInteger 		numColumns;
+@property (strong, nonatomic) NSDictionary * 	last;
+@property (assign, readonly) BOOL				usePipe;
 @end

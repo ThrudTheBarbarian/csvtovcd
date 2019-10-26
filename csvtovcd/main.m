@@ -81,7 +81,9 @@ int main(int argc, const char * argv[])
 		|* Open the CSV file
 		\*********************************************************************/
 		CsvReader *csv 		= [[CsvReader alloc] initWithFile:file1];
-		
+		if ([csv usePipe])
+			hideProgress = YES;
+			
 		/*********************************************************************\
 		|* If we have a sample-number column, skip to sample 0
 		\*********************************************************************/
