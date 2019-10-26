@@ -230,6 +230,7 @@
 		fprintf(fp, "\n\n\t// Start iterating the values\n"
 					"\tinitial begin\n");
 
+		uint64_t lastCron = 0;
 		while (line != nil)
 			{
 			@autoreleasepool
@@ -253,7 +254,8 @@
 					}
 				if ([info length])
 					{
-					fprintf(fp, "\t#%llu\n%s\n", cron, [info UTF8String]);
+					fprintf(fp, "\t#%llu\n%s\n", cron - lastCron, [info UTF8String]);
+					lastCron = cron;
 					fflush(fp);
 					}
 				line = [csv nextLine];
