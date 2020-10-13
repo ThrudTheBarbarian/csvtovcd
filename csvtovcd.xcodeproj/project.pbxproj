@@ -13,6 +13,7 @@
 		F47A10AE205ACCF30026F3C3 /* NSString+Time.m in Sources */ = {isa = PBXBuildFile; fileRef = F47A10AD205ACCF30026F3C3 /* NSString+Time.m */; };
 		F47A10B1205AD0320026F3C3 /* VcdWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = F47A10B0205AD0320026F3C3 /* VcdWriter.m */; };
 		F47A10B4205AD4C20026F3C3 /* VcdVariable.m in Sources */ = {isa = PBXBuildFile; fileRef = F47A10B2205AD4C10026F3C3 /* VcdVariable.m */; };
+		F485AB362363F78D00FA29CD /* csvtovcd in CopyFiles */ = {isa = PBXBuildFile; fileRef = F47A109C205AC5F10026F3C3 /* csvtovcd */; };
 		F49A4EF9235E0950005D9E4B /* TbWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = F49A4EF8235E0950005D9E4B /* TbWriter.m */; };
 		F49A4EFC235E0C3E005D9E4B /* Writer.m in Sources */ = {isa = PBXBuildFile; fileRef = F49A4EFB235E0C3E005D9E4B /* Writer.m */; };
 /* End PBXBuildFile section */
@@ -20,12 +21,13 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		F47A109A205AC5F10026F3C3 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
+			buildActionMask = 12;
+			dstPath = "$(HOME)/bin";
 			dstSubfolderSpec = 0;
 			files = (
+				F485AB362363F78D00FA29CD /* csvtovcd in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 

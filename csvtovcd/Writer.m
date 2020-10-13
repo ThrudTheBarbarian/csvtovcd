@@ -63,15 +63,37 @@
 	/*************************************************************************\
 	|* Parse the vector spec into a dictionary format
 	\*************************************************************************/
-	NSMutableDictionary *V = [NSMutableDictionary new];
+	NSMutableDictionary *vals   = [NSMutableDictionary new];
+	NSMutableDictionary *names	= [NSMutableDictionary new];
+
 	NSArray *vecs = [vectorSpec componentsSeparatedByString:@","];
 	for (NSString *vec in vecs)
 		{
-		NSArray *kv = [vec componentsSeparatedByString:@":"];
+		NSString *spec		= vec;
+		NSString *newName	= nil;
+        
+		NSArray *replace	= [spec componentsSeparatedByString:@"="];
+		if ([replace count] == 2)
+			{
+			spec			= [replace objectAtIndex:0];
+			newName         = [replace objectAtIndex:1];
+			}
+
+		NSString *bitWidth	= @"1";
+		NSString *oldName   = spec;
+		NSArray *kv         = [spec componentsSeparatedByString:@":"];
+
 		if ([kv count] == 2)
-			[V setObject:[kv objectAtIndex:1] forKey:[kv objectAtIndex:0]];
-		else if ([kv count] == 1)
-			[V setObject:@"1" forKey:[kv objectAtIndex:0]];
+			{
+			oldName  = [kv objectAtIndex:0];
+			bitWidth = [kv objectAtIndex:1];
+			}
+            
+		if (newName == nil)
+			newName = oldName;
+			
+		[vals setObject:bitWidth forKey:oldName];
+		[names setObject:newName forKey:oldName];
 		}
 
 	/*************************************************************************\
@@ -83,7 +105,7 @@
 			continue;
 		if ((_timeCol != nil) && ([name isEqualToString:_timeCol]))
 			continue;
-		NSString *varWidth = [V objectForKey:name];
+		NSString *varWidth = [vals objectForKey:name];
 		if (varWidth)
 			{
 			int width = 1;
@@ -91,7 +113,7 @@
 				width = [varWidth intValue];
 			
 			VcdVariable *var = [VcdVariable new];
-			[var setName:name];
+			[var setName:[names objectForKey:name]];
 			[var setBitWidth:width];
 			[var setIdentifier:_nextId++];
 			[_values setObject:var forKey:name];

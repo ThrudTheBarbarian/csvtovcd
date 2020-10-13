@@ -150,7 +150,8 @@
 
 	fprintf(fp, "\n\n\t// Start iterating the filtered values\n"
 				"\tinitial begin\n");
-				
+			
+	uint64_t lastCron = 0;
 	while (line != nil)
 		{
 		@autoreleasepool
@@ -188,8 +189,8 @@
 					
 					if (cron != [v cron])
 						{
-						fprintf(fp, "\t#%llu\n", [v cron]);
-						cron = [v cron];
+						fprintf(fp, "\t#%llu\n", [v cron] - lastCron);
+						lastCron = cron = [v cron];
 						}
 						
 					if ([v bitWidth] == 1)
